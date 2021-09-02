@@ -26,7 +26,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     */
     // WHERE p.product_name LIKE '64gb OR p.product_description LIKE '%64gb%' AND smartphones OR sub.name = 'smartphones
     const { rowCount: total, rows: products } = await pgPool.query(`
-                                                                    SELECT p.product_name AS name, 
+                                                                    SELECT p.id,p.product_name AS name, 
                                                                     p.product_description AS description, 
                                                                     p.price, 
                                                                     p.stock,
@@ -86,7 +86,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     const { rowCount: confirmInsert, rows } = await pgPool.query('INSERT INTO products(subcat_id, product_name, product_description, price, stock) VALUES($1, $2, $3, $4, $5)RETURNING *', values)
     if (confirmInsert) {
         const { rows: newProduct } = await pgPool.query(
-            `SELECT p.product_name AS name, 
+            `SELECT p.id,p.product_name AS name, 
         p.product_description AS description, 
         p.price, 
         p.stock,
