@@ -34,45 +34,50 @@ export const getAllProducts = asyncHandler(async (req, res) => {
                                                                     cat.id As "categoryId",
                                                                     sub.name AS subcategory, 
                                                                     cat.name AS category ,
-                                                                    pimg.id As "pimageId",
-                                                                    pimg.url AS productimage
+                                                                    COALESCE(product_images.images , '[]') AS images
                                                                         FROM products AS p
                                                                         JOIN subcategories AS sub
                                                                         ON p.subcat_id = sub.id
                                                                         JOIN categories AS cat
                                                                         ON sub.category_id = cat.id
-                                                                        LEFT JOIN product_images AS pimg
-                                                                        ON p.id = pimg.product_id
-                                                                        
+                                                                        LEFT JOIN LATERAL (
+                                                                            SELECT json_agg(json_build_object('id', id, 'url', url)) AS images
+                                                                            FROM product_images
+                                                                            WHERE product_id = p.id
+                                                                        ) product_images ON true
                                                                 `)
     res.status(201).json({ total, products });
 })
+
 export const getSingleProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
     console.log(id)
     const { rows, rowCount } = await pgPool.query(
-        `SELECT p.product_name AS name, 
-    p.product_description AS description, 
-    p.price, 
-    p.stock,
-    sub.id As "subcategoryId",
-    cat.id As "categoryId",
-    sub.name AS subcategory, 
-    cat.name AS category ,
-    pimg.id As "pimageId",
-    pimg.url AS productimage
-        FROM products AS p
-        JOIN subcategories AS sub
-        ON p.subcat_id = sub.id
-        JOIN categories AS cat
-        ON sub.category_id = cat.id
-        LEFT JOIN product_images AS pimg
-        ON p.id = pimg.product_id 
+        `SELECT p.id,p.product_name AS name, 
+        p.product_description AS description, 
+        p.price, 
+        p.stock,
+        sub.id As "subcategoryId",
+        cat.id As "categoryId",
+        sub.name AS subcategory, 
+        cat.name AS category ,
+        COALESCE(product_images.images , '[]') AS images
+            FROM products AS p
+            JOIN subcategories AS sub
+            ON p.subcat_id = sub.id
+            JOIN categories AS cat
+            ON sub.category_id = cat.id
+            LEFT JOIN LATERAL (
+                SELECT json_agg(json_build_object('id', id, 'url', url)) AS images
+                FROM product_images
+                WHERE product_id = p.id
+            ) product_images ON true
         WHERE p.id=$1;`, [id])
     if (!rowCount) throw new ErrorResponse(`product with id of ${id} not found`, 404);
     res.status(200).json(rows[0]);
 
 })
+
 export const createProduct = asyncHandler(async (req, res) => {
 
     const { role } = req.user;
@@ -154,5 +159,13 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     const { rowCount: deleted } = await pgPool.query('DELETE FROM products WHERE id=$1 RETURNING *', [id])
     if (deleted)
         res.status(200).json({ success: true, message: `product with id of ${id} was deleted` });
+})
 
+export const addImageToProduct = asyncHandler(async (req, res) => {
+    const { user: { role }, params: { id }, location } = req
+    if (role !== 'admin') throw new ErrorResponse('Unauthorized', 401)
+    const { rowCount: found } = await pgPool.query('SELECT * FROM products WHERE id=$1', [id])
+    if (!found) throw new Error(`Products with id of ${id} does't exist, image cannot be added`)
+    const { rows: [image] } = await pgPool.query('INSERT INTO product_images(product_id, url) VALUES($1, $2) RETURNING *', [id, location])
+    res.status(200).json(image)
 })

@@ -1,4 +1,6 @@
 import 'dotenv/config.js';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/authRouter.js';
@@ -9,11 +11,13 @@ import orderRouter from './routes/orderRouter.js';
 import orderdetailsRouter from './routes/orderdetailsRouter.js';
 import errorHandler from './middlewares/errorHandler.js';
 
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.use(express.static(join(__dirname, 'public')));
 app.use(
     cors({
         origin: process.env.CORS_ORIGIN
