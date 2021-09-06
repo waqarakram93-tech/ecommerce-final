@@ -9,6 +9,8 @@ import subcategoryRouter from './routes/subcategoryRouter.js';
 import productRouter from './routes/productRouter.js';
 import orderRouter from './routes/orderRouter.js';
 import orderdetailsRouter from './routes/orderdetailsRouter.js';
+import paymentsRouter from './routes/paymentsRouter.js';
+//import userdetailsRouter from './routes/userdetailsRouter.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +33,8 @@ app.use('/subcategories', subcategoryRouter);
 app.use('/products', productRouter);
 app.use('/orders', orderRouter);
 app.use('/orderdetails', orderdetailsRouter);
+app.use('/checkout', paymentsRouter);
+//app.use('/userdetails', userdetailsRouter);
 app.use(errorHandler)
 
 

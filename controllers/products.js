@@ -92,22 +92,24 @@ export const createProduct = asyncHandler(async (req, res) => {
     if (confirmInsert) {
         const { rows: newProduct } = await pgPool.query(
             `SELECT p.id,p.product_name AS name, 
-        p.product_description AS description, 
-        p.price, 
-        p.stock,
-        sub.id As "subcategoryId",
-        cat.id As "categoryId",
-        sub.name AS subcategory, 
-        cat.name AS category ,
-        pimg.id As "pimageId",
-        pimg.url AS productimage
-            FROM products AS p
-            JOIN subcategories AS sub
-            ON p.subcat_id = sub.id
-            JOIN categories AS cat
-            ON sub.category_id = cat.id
-            LEFT JOIN product_images AS pimg
-            ON p.id = pimg.product_id 
+            p.product_description AS description, 
+            p.price, 
+            p.stock,
+            sub.id As "subcategoryId",
+            cat.id As "categoryId",
+            sub.name AS subcategory, 
+            cat.name AS category ,
+            COALESCE(product_images.images , '[]') AS images
+                FROM products AS p
+                JOIN subcategories AS sub
+                ON p.subcat_id = sub.id
+                JOIN categories AS cat
+                ON sub.category_id = cat.id
+                LEFT JOIN LATERAL (
+                    SELECT json_agg(json_build_object('id', id, 'url', url)) AS images
+                    FROM product_images
+                    WHERE product_id = p.id
+                ) product_images ON true
             WHERE p.id=$1;`, [rows[0].id])
         res.status(201).json(newProduct[0]);
     }

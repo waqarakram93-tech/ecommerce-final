@@ -68,7 +68,7 @@ export const createOrderDetail = asyncHandler(async (req, res) => {
     const { order_id, product_id, product_qty, sub_total } = req.body;
     if (!order_id || !product_id || !product_qty || !sub_total || !user)
         throw new ErrorResponse('All fields are required', 400);
-    const { rowCount: found } = await pgPool.query('SELECT * FROM orders WHERE id=$1', [id])
+    const { rowCount: found } = await pgPool.query('SELECT * FROM order_details WHERE id=$1', [id])
     if (found) throw new ErrorResponse('order_details already exists')
     const values = [order_id, product_id, product_qty, sub_total]
     const { rows } = await pgPool.query('INSERT INTO order_details(order_id, product_id, product_qty, sub_total) VALUES($1, $2, $3, $4)RETURNING *', values)

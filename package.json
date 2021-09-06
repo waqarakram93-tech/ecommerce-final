@@ -24,6 +24,7 @@
     "mysql": "^2.18.1",
     "pg": "^8.7.1",
     "pg-pool": "^3.4.1",
+    "stripe": "^8.174.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
