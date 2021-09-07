@@ -7,7 +7,7 @@ const verifyUser = asyncHandler(async (req, res, next) => {
     const { authorization } = req.headers;
     if (!authorization) throw new ErrorResponse('Unauthorized', 401);
     const { id } = jwt.verify(authorization, process.env.JWT_SECRET);
-    const { rowCount, rows } = await pgPool.query(`SELECT  u.id, u.role, ud.first_name,  ud.last_name, u.email, ud.address, ud.postcode, ud.city, ud.phone
+    const { rowCount, rows } = await pgPool.query(`SELECT  u.id, u.role, ud.first_name AS firstname,  ud.last_name AS lastname, u.email, ud.address, ud.postcode, ud.city, ud.phone
                                                   FROM users AS u
                                                   LEFT JOIN user_details AS ud
                                                   ON u.id = ud.user_id
