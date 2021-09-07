@@ -157,7 +157,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rowCount: found } = await pgPool.query('SELECT * FROM products WHERE id=$1', [id])
     if (!found) throw new Error(`products with id of ${id} does't exist`)
-
+    await pgPool.query('DELETE FROM product_images WHERE product_id = $1', [id])
     const { rowCount: deleted } = await pgPool.query('DELETE FROM products WHERE id=$1 RETURNING *', [id])
     if (deleted)
         res.status(200).json({ success: true, message: `product with id of ${id} was deleted` });

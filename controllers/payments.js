@@ -6,8 +6,20 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     const { url } = await stripeClient.checkout.sessions.create({
         line_items: [
             {
-                price: 'price_1JWgqyDQgxuUeo0yz3xpBDo1',
-                quantity: 1
+                images: ["https://cdn.vega-direct.com/images/600x600/45cce849/45cce8492b2f4d55/45cce8492b2f4d559f0dff43/45cce8492b2f4d559f0dff43bcc0f776/PU6120FS028_305392_2019-07-15_13-34-38.JPG"],
+                amount: 2500,
+                name: 'Knife',
+                "currency": "eur",
+                "description": "Test",
+                "quantity": 1
+            },
+            {
+                images: ["https://cdn.vega-direct.com/images/600x600/45cce849/45cce8492b2f4d55/45cce8492b2f4d559f0dff43/45cce8492b2f4d559f0dff43bcc0f776/PU6120FS028_305392_2019-07-15_13-34-38.JPG"],
+                amount: 2500,
+                name: 'Knife2',
+                "currency": "eur",
+                "description": "Test2",
+                "quantity": 1
             }
         ],
         payment_method_types: ['card', 'giropay', 'sofort'],

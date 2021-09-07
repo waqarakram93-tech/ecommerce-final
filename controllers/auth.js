@@ -36,13 +36,14 @@ export const getUserInfo = asyncHandler(async (req, res) => res.status(200).json
 
 
 export const updateUserInfo = asyncHandler(async (req, res) => {
+    const { user } = req
     const { firstname, lastname, address, postcode, city, phone } = req.body;
     if (!firstname || !lastname || !address || !postcode || !city || !phone)
         throw new ErrorResponse('All fields are required', 400);
-
-
-    const values = [firstname, lastname, address, postcode, city, phone]
-    const { rows } = await pgPool.query('INSERT INTO user_details(first_name , last_name, address, postcode, city, phone) VALUES($1, $2, $3, $4, $5, $6)RETURNING *', values)
+    const values = [user.id, firstname, lastname, address, postcode, city, phone]
+    await pgPool.query('DELETE FROM user_details WHERE user_id = $1', [user.id])
+    const { rows } = await pgPool.query('INSERT INTO user_details(user_id, first_name , last_name, address, postcode, city, phone) VALUES($1, $2, $3, $4, $5, $6, $7)RETURNING *', values)
 
     res.status(200).json(rows[0]);
 });
+
