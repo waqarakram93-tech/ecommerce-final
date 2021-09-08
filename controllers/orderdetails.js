@@ -63,20 +63,22 @@ WHERE o.id=$1;`, [id])
 
 })
 export const createOrderDetail = asyncHandler(async (req, res) => {
-    const { id: user } = req.user;
-    const { id } = req.params;
-    const { order_id, product_id, product_qty, sub_total } = req.body;
-    if (!order_id || !product_id || !product_qty || !sub_total || !user)
+    const { order: { id }, cart } = req.body;
+    if (!cart || !id)
         throw new ErrorResponse('All fields are required', 400);
-    const { rowCount: found } = await pgPool.query('SELECT * FROM order_details WHERE id=$1', [id])
-    if (found) throw new ErrorResponse('order_details already exists')
-    const values = [order_id, product_id, product_qty, sub_total]
-    const { rows } = await pgPool.query('INSERT INTO order_details(order_id, product_id, product_qty, sub_total) VALUES($1, $2, $3, $4)RETURNING *', values)
-
-
-    res.status(201).json(rows[0]);
+    const { rowCount: found } = await pgPool.query('SELECT * FROM orders WHERE id=$1', [id])
+    if (!found) throw new ErrorResponse(`Order with id of ${id} doesn't exist`)
+    const prepareInserts = []
+    cart.forEach(item => {
+        const values = [id, item.id, item.qty, item.qty * item.price]
+        const query = pgPool.query('INSERT INTO order_details(order_id, product_id, product_qty, sub_total) VALUES($1, $2, $3, $4)RETURNING *', values)
+        prepareInserts.push(query)
+    })
+    const orderdetails = await Promise.all(prepareInserts)
+    res.status(201).json(orderdetails);
 
 })
+
 export const updateOrderDetail = asyncHandler(async (req, res) => {
     const { id: user } = req.user;
     const { id } = req.params;

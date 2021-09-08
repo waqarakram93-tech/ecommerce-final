@@ -2,11 +2,11 @@ import pgPool from '../db/pgPool.js';
 import asyncHandler from '../middlewares/asyncHandler.js'
 import ErrorResponse from '../utils/ErrorResponse.js'
 
-
 export const getAllOrders = asyncHandler(async (req, res) => {
     const { rowCount: total, rows: orders } = await pgPool.query('SELECT * FROM orders;')
     res.status(201).json({ total, orders });
 })
+
 export const getSingleOrder = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rows, rowCount } = await pgPool.query('SELECT * FROM orders WHERE id=$1;', [id])
@@ -14,23 +14,17 @@ export const getSingleOrder = asyncHandler(async (req, res) => {
     res.status(200).json(rows[0]);
 
 })
+
 export const createOrder = asyncHandler(async (req, res) => {
-    const { id: user } = req.user;
-    console.log('user= ', user)
-    //const userId = req.user.id
-    const { id } = req.params;
-    const { user_details_id, order_number, order_date, order_total } = req.body;
-    if (!user_details_id || !user || !order_number || !order_date || !order_total)
-        throw new ErrorResponse('All fields are required', 400);
-    const { rowCount: found } = await pgPool.query('SELECT * FROM orders WHERE id=$1', [id])
-    if (found) throw new ErrorResponse('order already exists')
-    const values = [user_details_id, order_number, order_date, order_total]
-    const { rows } = await pgPool.query('INSERT INTO orders(user_details_id, order_number, order_date, order_total) VALUES($1, $2, $3, $4)RETURNING *', values)
-
-
+    const { user: { id } } = req
+    const { order_total } = req.body
+    if (!order_total)
+        throw new ErrorResponse('Order total is required', 400);
+    const values = [id, order_total]
+    const { rows } = await pgPool.query('INSERT INTO orders(user_details_id, order_date, order_total) VALUES($1, now(), $2)RETURNING *', values)
     res.status(201).json(rows[0]);
-
 })
+
 export const updateOrder = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { id: user } = req.user;
