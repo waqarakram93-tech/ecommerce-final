@@ -18,9 +18,8 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
         line_items,
         payment_method_types: ['card', 'giropay', 'sofort'],
         mode: 'payment',
-        success_url: `http://localhost:3000?success=true`,
-        cancel_url: `http://localhost:3000?canceled=true`
+        success_url: `${process.env.FRONTEND_URL}/orders/success`,
+        cancel_url: `${process.env.FRONTEND_URL}/orders/cancel`
     });
-
     res.json({ url });
 });

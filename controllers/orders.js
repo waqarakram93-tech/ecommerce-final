@@ -15,6 +15,13 @@ export const getSingleOrder = asyncHandler(async (req, res) => {
 
 })
 
+export const getOrderByUser = asyncHandler(async (req, res) => {
+    const { user: { id } } = req
+    const { rows, rowCount } = await pgPool.query('SELECT * FROM orders WHERE user_details_id=$1;', [id])
+    res.status(200).json(rows);
+
+})
+
 export const createOrder = asyncHandler(async (req, res) => {
     const { user: { id } } = req
     const { order_total } = req.body
